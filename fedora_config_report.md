@@ -34,6 +34,15 @@ graph TD
 *   **Power Management**: PowerMizer Mode is set to Adaptive (`GPUPowerMizerMode=0` in `~/.nvidia-settings-rc`).
 *   **Active GPU Offloading**: Managed dynamically via `switcheroo-control` under GNOME Wayland/Xwayland. Applications like Steam, Firefox, Ptyxis, and Ollama are leveraging the NVIDIA dGPU.
 
+### Disable package conflict with rpmfusion for the nvidia drivers and use the official cuda repo.
+*   sudo dnf5 config-manager setopt rpmfusion-nonfree.excludepkgs="*nvidia*"
+*   sudo dnf5 config-manager setopt rpmfusion-nonfree-updates.excludepkgs="*nvidia*"
+*   sudo dnf5 clean all
+*   rm -rf ~/.cache/gnome-software/*
+*   pkcon refresh force
+*   dnf5 list available "*nvidia*"
+*   sudo dnf upgrade --refresh
+
 ---
 
 ## 3. Package Management & Repositories
