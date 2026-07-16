@@ -5,12 +5,9 @@ This markdown file summarizes the custom configuration for my Dell Tower PC.
 ---
 
 ## 1. System
-
-Your system is configured with a hybrid graphics setup running Fedora 44 under a modern Linux kernel.
-
 ### Hardware Summary
 *   **Operating System**: Fedora release 44 (Forty Four)
-*   **Kernel**: Linux `7.0.12-200.fc44.x86_64`
+*   **Kernel**: Linux `7.1.3-201.fc44.x86_64`
 *   **Processors/Graphics**:
     *   **Integrated GPU**: Intel Corporation Arrow Lake-S (Intel Graphics)
     *   **Discrete GPU**: NVIDIA Corporation AD107GL (RTX 2000 / 2000E Ada Generation, 16GB VRAM)
@@ -24,7 +21,7 @@ graph TD
     Intel["Intel Arrow Lake-S (iGPU)"] --- Switch["switcheroo-control"]
     Nvidia["NVIDIA RTX 2000 Ada (dGPU)"] --- Switch
     Switch --> Display["Dell S3422DWG (3440x1440 @ 144Hz, HDR, VRR)"]
-    Nvidia --> CUDA["CUDA 13.2 / 13.3 Toolkit"]
+    Nvidia --> CUDA["CUDA 13.3 / 13.3 Toolkit"]
     CUDA --> Ollama["Ollama (gemma4:26b)"]
 ```
 
@@ -32,8 +29,8 @@ graph TD
 
 ## 2. NVIDIA & Display Settings
 
-*   **Driver Version**: `595.80` (Proprietary NVIDIA Driver)
-*   **CUDA Version**: `13.2` (Supported by CUDA Toolkit `13.3`)
+*   **Driver Version**: `610.42` (Proprietary NVIDIA Driver)
+*   **CUDA Version**: `13.3` (Supported by CUDA Toolkit `13.3`)
 *   **Power Management**: PowerMizer Mode is set to Adaptive (`GPUPowerMizerMode=0` in `~/.nvidia-settings-rc`).
 *   **Active GPU Offloading**: Managed dynamically via `switcheroo-control` under GNOME Wayland/Xwayland. Applications like Steam, Firefox, Ptyxis, and Ollama are leveraging the NVIDIA dGPU.
 
@@ -59,19 +56,15 @@ graph TD
 
 ## 4. Shell & Environment Configurations
 
-The `.bashrc` has custom configuration scripts from `~/.bashrc.d/`. The following modifications are done:
+* ~/.config/environment.d/envvars.conf
 
-### Path Extensions
-*   `/home/galpar/.local/bin` and `/home/galpar/bin` are appended to the environment `$PATH`.
+> LIBVA_DRIVER_NAME=nvidia
+> MOZ_DISABLE_RDD_SANDBOX=1
+> CUDA_DISABLE_PERF_BOOST=1
+
+***
 
 ### Scripts in `~/.bashrc.d/`
-
-> [!NOTE]
-> **nvidia-gstreamer.sh**
-> ```bash
-> export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
-> ```
-> *Forces GStreamer / library lookup to prioritize 64-bit system libraries, resolving potential codec loader issues. Fixes Firefox and Chrome not using hardware decoding.*
 
 > [!NOTE]
 > **ollama-aliases.sh**
@@ -82,22 +75,7 @@ The `.bashrc` has custom configuration scripts from `~/.bashrc.d/`. The followin
 
 ---
 
-## 5. Desktop Environment & Personalization
-
-*   **Window Manager**: GNOME Shell on Wayland.
-*   **Autostart Configurations (`~/.config/autostart`)**:
-    *   **Signal Desktop** (Flatpak version launch on login)
-    *   **Steam** (RPM version launch on login)
-    *   **Custom Night Theme Switcher** (A script that automatically switches between light and dark themes based on GNOME's Night Light status, using DBus monitoring for real-time changes).
-*   **GNOME Shell Extensions**:
-    *   `apps-menu` (Applications Menu) is enabled.
-    *   `alphabetical app menu` is enabled.
-*   **Theming**:
-    *   `adw-gtk3` and `adw-gtk3-dark` Flatpak packages are installed to force older GTK3 applications to blend seamlessly with GNOME's modern Libadwaita (GTK4) design system.
-
----
-
-## 6. Audio & Multimedia Configuration (PipeWire & WirePlumber)
+## 5. Audio & Multimedia Configuration (PipeWire & WirePlumber)
 
 ### Custom WirePlumber Configuration
 
@@ -111,7 +89,7 @@ The `.bashrc` has custom configuration scripts from `~/.bashrc.d/`. The followin
 > *Disables automatically switching Bluetooth audio devices to the low-quality headset profile (HSP/HFP) when a microphone is activated.*
 
 
-## 7. Location Services (GeoClue)
+## 6. Location Services (GeoClue)
 
 ### Custom GeoClue setting
 
@@ -124,7 +102,7 @@ The `.bashrc` has custom configuration scripts from `~/.bashrc.d/`. The followin
 > Elevation
 > Accuracy
 
-## 8. Night Theme Switcher
+## 7. Night Theme Switcher
 
 ### Step 1: Create the automatic switcher script
 
