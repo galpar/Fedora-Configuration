@@ -180,3 +180,22 @@ Comment=Syncs Light/Dark mode with GNOME Night Light status
 ```bash
 ~/.local/bin/toggle-dark-mode.sh &
 ```
+## 8. Speed up boot time
+
+sudo systemctl disable NetworkManager-wait-online.service - takes like 7.5 sec
+
+sudo nano /etc/dracut.conf.d/hostonly.conf
+
+hostonly="yes"
+
+sudo dracut --force --hostonly
+
+Initrd takes like 35 sec, with hostonly it takes about 4.5 sec
+
+Remove grub timeout
+sudo nano /etc/default/grub
+
+GRUB_TIMEOUT=0
+GRUB_TIMEOUT_STYLE=hidden
+
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
