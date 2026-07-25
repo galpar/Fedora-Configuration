@@ -259,3 +259,78 @@ Then execute the enrollment command again.
 sudo cryptsetup luksDump /dev/nvme0n1p3
 ```
 
+## 10. EFI Boot Drive Selector
+
+A utility script to view and change the next boot device using `efibootmgr`. This is useful when you have multiple boot drives and want to select which one to use on the next reboot without entering the BIOS.
+
+### Installation
+
+The script is located at `~/.local/bin/boot-selector` and is executable.
+
+### Usage
+
+The script supports three modes of operation:
+
+#### Interactive Mode (no arguments)
+
+```bash
+boot-selector
+```
+
+Displays the current EFI boot configuration and prompts you to select a boot entry for the next reboot.
+
+#### Show Current Configuration
+
+```bash
+boot-selector show
+```
+
+Displays:
+- Currently booted entry (BootCurrent)
+- All available boot entries
+- Current next boot override (if set)
+
+#### Set Next Boot Entry
+
+```bash
+boot-selector set 0001
+```
+
+Sets the specified boot entry to be used on the next reboot. You may need sudo privileges.
+
+#### Clear Next Boot Override
+
+```bash
+boot-selector clear
+```
+
+Removes the next boot override, allowing the system to use the default BootOrder on reboot.
+
+### Features
+
+- **Color-coded output** for easy readability
+- **Interactive prompt** for boot entry selection
+- **Command-line arguments** for scripting and automation
+- **Validation** of boot entries before setting
+- **Error handling** with clear error messages
+- **Help command** for quick reference
+
+### Requirements
+
+- `efibootmgr` must be installed (`sudo dnf install efibootmgr`)
+- System must use UEFI/EFI firmware
+- Some operations (set, clear) require sudo privileges
+
+### Example Workflow
+
+```bash
+# View current boot configuration
+boot-selector show
+
+# Interactively select next boot device
+boot-selector
+
+# Or directly set a specific entry
+boot-selector set 0002
+```
+

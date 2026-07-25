@@ -1,0 +1,157 @@
+#!/bin/bash
+
+# EFI Boot Drive Selector
+# Allows users to view and change the next boot drive using efibootmgr
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to display current boot configuration
+show_boot_config() {
+    echo -e "${BLUE}=== Current EFI Boot Configuration ===${NC}\n"
+    
+    # Get current boot entry
+    local current_boot=$(efibootmgr | grep "BootCurrent" | awk -F': ' '{print $2}')
+    echo -e "${GREEN}Currently booted entry:${NC} $current_boot\n"
+    
+    # Get all available boot entries
+    echo -e "${GREEN}Available boot entries:${NC}"
+    efibootmgr | grep "^Boot" | head -n 20
+    echo
+}
+
+# Function to show next boot override (if set)
+show_next_boot() {
+    echo -e "${BLUE}=== Next Boot Override ===${NC}\n"
+    local next_boot=$(efibootmgr | grep "BootNext" | awk -F': ' '{print $2}')
+    
+    if [ -z "$next_boot" ]; then
+        echo -e "${YELLOW}No next boot override is set. System will use BootOrder on next reboot.${NC}\n"
+    else
+        echo -e "${GREEN}Next boot override:${NC} $next_boot\n"
+    fi
+}
+
+# Function to set boot entry (interactive)
+set_boot_interactive() {
+    show_boot_config
+    show_next_boot
+    
+    echo -e "${BLUE}Select a boot entry to use on next boot:${NC}"
+    read -p "Enter boot entry (e.g., 0001, 0000): " boot_entry
+    
+    if [ -z "$boot_entry" ]; then
+        echo -e "${RED}Error: Boot entry cannot be empty.${NC}"
+        return 1
+    fi
+    
+    # Validate that the entry exists
+    if ! efibootmgr | grep -q "^Boot$boot_entry"; then
+        echo -e "${RED}Error: Boot entry $boot_entry does not exist.${NC}"
+        return 1
+    fi
+    
+    set_boot "$boot_entry"
+}
+
+# Function to set boot entry (with argument)
+set_boot() {
+    local boot_entry=$1
+    
+    echo -e "${YELLOW}Setting next boot to: $boot_entry${NC}"
+    
+    if sudo efibootmgr -n "$boot_entry" 2>/dev/null; then
+        echo -e "${GREEN}✓ Successfully set next boot to: $boot_entry${NC}"
+        show_next_boot
+    else
+        echo -e "${RED}Error: Failed to set boot entry. You may need sudo privileges.${NC}"
+        return 1
+    fi
+}
+
+# Function to clear next boot override
+clear_boot_override() {
+    echo -e "${YELLOW}Clearing next boot override...${NC}"
+    
+    if sudo efibootmgr -B 2>/dev/null; then
+        echo -e "${GREEN}✓ Successfully cleared next boot override.${NC}"
+        show_next_boot
+    else
+        echo -e "${RED}Error: Failed to clear boot override. You may need sudo privileges.${NC}"
+        return 1
+    fi
+}
+
+# Function to show help
+show_help() {
+    cat << EOF
+${BLUE}EFI Boot Drive Selector${NC}
+
+${GREEN}Usage:${NC}
+  boot-selector [OPTION]
+
+${GREEN}Options:${NC}
+  (none)              Interactive mode - display boot info and prompt for selection
+  show                Display current boot configuration and next boot override
+  set <entry>         Set next boot entry (e.g., boot-selector set 0001)
+  clear               Clear next boot override
+  help                Show this help message
+
+${GREEN}Examples:${NC}
+  boot-selector                     # Interactive mode
+  boot-selector show                # Display boot info
+  boot-selector set 0001            # Set next boot to entry 0001
+  boot-selector clear               # Clear next boot override
+
+${YELLOW}Note:${NC} Some operations require sudo privileges.
+
+EOF
+}
+
+# Main script logic
+main() {
+    local command="${1:-}"
+    
+    case "$command" in
+        show)
+            show_boot_config
+            show_next_boot
+            ;;
+        set)
+            if [ -z "${2:-}" ]; then
+                echo -e "${RED}Error: Boot entry not specified.${NC}"
+                echo "Usage: boot-selector set <entry>"
+                return 1
+            fi
+            set_boot "$2"
+            ;;
+        clear)
+            clear_boot_override
+            ;;
+        help|-h|--help)
+            show_help
+            ;;
+        "")
+            set_boot_interactive
+            ;;
+        *)
+            echo -e "${RED}Unknown option: $command${NC}"
+            show_help
+            return 1
+            ;;
+    esac
+}
+
+# Check if efibootmgr is available
+if ! command -v efibootmgr &> /dev/null; then
+    echo -e "${RED}Error: efibootmgr is not installed. Please install it with: sudo dnf install efibootmgr${NC}"
+    exit 1
+fi
+
+main "$@"
