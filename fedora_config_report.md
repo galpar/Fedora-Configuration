@@ -182,38 +182,80 @@ Comment=Syncs Light/Dark mode with GNOME Night Light status
 ```
 ## 8. Speed up boot time
 
-sudo systemctl disable NetworkManager-wait-online.service - takes like 7.5 sec
+### Step 1: Disable NetworkManager wait-online service
 
+```bash
+sudo systemctl disable NetworkManager-wait-online.service
+```
+
+*This saves approximately 7.5 seconds of boot time.*
+
+### Step 2: Enable hostonly mode in dracut
+
+```bash
 sudo nano /etc/dracut.conf.d/hostonly.conf
+```
 
+Add the following line:
+
+```ini
 hostonly="yes"
+```
 
+Then regenerate the initramfs:
+
+```bash
 sudo dracut --force --hostonly
+```
 
-Initrd takes like 35 sec, with hostonly it takes about 4.5 sec
+*Initrd initialization time is reduced from ~35 seconds to ~4.5 seconds.*
 
-Remove grub timeout
+### Step 3: Remove GRUB timeout
+
+```bash
 sudo nano /etc/default/grub
+```
 
+Update the following lines:
+
+```ini
 GRUB_TIMEOUT=0
 GRUB_TIMEOUT_STYLE=hidden
+```
 
+Regenerate the GRUB configuration:
+
+```bash
 sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+```
 
 ## 9. Automatic decrypt
 
-Find the encrypted LVM partition
+### Step 1: Find the encrypted LVM partition
 
+```bash
 lsblk -o NAME,FSTYPE,MOUNTPOINTS
+```
 
-Enroll TPM2 key:
+### Step 2: Enroll TPM2 key
+
+```bash
 sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 /dev/nvme0n1p3
+```
 
-In case of bios update, pcr 7 trust is broken, and needs to be re-enrolled.
-First we remove the existing key with:
+### Step 3: Re-enroll after BIOS updates
+
+If a BIOS update breaks PCR 7 trust, remove the existing key first:
+
+```bash
 sudo systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1p3
-Then execute the enrollement.
+```
 
-Verification:
+Then execute the enrollment command again.
+
+### Step 4: Verify TPM2 enrollment
+
+```bash
 sudo cryptsetup luksDump /dev/nvme0n1p3
+```
 
