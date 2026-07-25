@@ -214,3 +214,6 @@ First we remove the existing key with:
 sudo systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1p3
 Then execute the enrollement.
 
+Verification:
+sudo cryptsetup luksDump /dev/nvme0n1p3
+
