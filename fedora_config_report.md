@@ -199,3 +199,18 @@ GRUB_TIMEOUT=0
 GRUB_TIMEOUT_STYLE=hidden
 
 sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+
+## 9. Automatic decrypt
+
+Find the encrypted LVM partition
+
+lsblk -o NAME,FSTYPE,MOUNTPOINTS
+
+Enroll TPM2 key:
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 /dev/nvme0n1p3
+
+In case of bios update, pcr 7 trust is broken, and needs to be re-enrolled.
+First we remove the existing key with:
+sudo systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1p3
+Then execute the enrollement.
+
