@@ -180,6 +180,48 @@ Comment=Syncs Light/Dark mode with GNOME Night Light status
 ```bash
 ~/.local/bin/toggle-dark-mode.sh &
 ```
+Prefer Light GTK Theme for UI
+
+mkdir -p ~/.local/bin
+nano ~/.local/bin/force-prefer-light.sh
+
+The script:
+#!/bin/bash
+# Listen for changes to the GNOME color-scheme setting
+gsettings monitor org.gnome.desktop.interface color-scheme | while read -r line; do
+    # Extract the current scheme setting
+    current_scheme=$(gsettings get org.gnome.desktop.interface color-scheme | tr -d "'")
+
+    # If GNOME sets it to 'default', override it with 'prefer-light'
+    if [ "$current_scheme" = "default" ]; then
+        gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
+    fi
+done
+
+Make it executable:
+chmod +x ~/.local/bin/force-prefer-light.sh
+
+Run the Script Automatically at Startup:
+mkdir -p ~/.config/systemd/user
+nano ~/.config/systemd/user/force-prefer-light.service
+
+Add this code:
+[Unit]
+Description=Override GNOME default color scheme with prefer-light
+After=gnome-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/force-prefer-light.sh
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+
+Enable and start the service:
+systemctl --user daemon-reload
+systemctl --user enable --now force-prefer-light.service
+
 ## 8. Speed up boot time
 
 ### Step 1: Disable NetworkManager wait-online service
